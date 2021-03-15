@@ -1,0 +1,358 @@
+Servlet listeners
+	ServletContext		-	application
+	HttpSession		-	session
+
+
+
+session is nothing but a private scope between an user and the application
+	user-jag
+	application-facebook
+
+surprsingly, the session begins when a browser requests any of the servlets in the application
+	NOT WHEN MY LOGIN ID AND PWDS ARE CORRECT
+	even if login is failed, even before i enter my login credentials, session has begun
+
+	until i close (all) browser(s), session exists
+	i close all the browsers containing my web application pages, then only session expires (though we can kill a session explicitly). By logout
+
+	how to find when the session began?
+
+listeners:
+	are event handlers that notifies when events occur
+
+	ServletContext		-	
+		ServletContextListener			all life cycle events
+		ServletContextAttributeListener		all attributes related events
+
+	HttpSession
+		HttpSessionListener
+		HttpSessionAttributeListener
+
+Task:
+	Create a sessionlistener that will print the time at which session began and end
+
+
+	request.getSession(false);			//by default it is false only
+
+	it will not create a session if a session already exists.
+	but there was no session, so it created as session.
+
+
+A session can be destroyed 
+	when max inactive interval period is completed
+	when session.invalidate method is called
+
+
+what is max inactive interval
+
+		session.setMaxInactiveInterval()		accepts time in seconds
+
+-------------------
+
+Now we add some attributes and handle the events using attribute listener
+
+Task:
+	Create a login page.
+	on successful login, the user name should be stored in a session attribute
+
+	on logout, the session should be destroyed.
+
+	Use listeners to handle the 
+		session created
+		sesssion destroyed
+		session atribute added
+		session attribute removed
+	events
+
+Task:
+	Create a web application with
+		login page
+		signup page	(just display purpose) dummy
+		Home page
+		Contact us
+		About us
+		Employees
+		Departments
+	all pages are created in JSP
+		In all the pages, the menu bar is same.
+	The menu bar contains links to go to any of the pages
+	In login page below login button, "New user? click here to signup"
+	In sign up page, below submit button, "Already have account?, click here to login"
+
+	The login page should submit the form to a servlet. The servlet should create a session attribute if the login is successful, and redirect to home page.
+	
+	The last option in the menu is "Logout"
+		On clicking the logout, it takes to a servlet.	The servlet should destroy the session
+	Every JSP page (except login page) should check if the session attribute ("user") is not null. If null, display a message "You have not logged in. Click here to go to login page".
+	
+	If he is a logged in user, then display 
+		"Title of the page and below that "Under construction" message.
+
+
+--------------------------------------------------------------------------
+There are lot of associates in our db
+We want to display the associate id in dropdown list
+
+
+apache-commons.jar		(why this jar is required?)
+	this jar is used to convert 
+		byte[] 	into Base 64 string
+
+	Base 64 strings can be displayed in <img>
+
+
+As soon as i select an option in dropdownlist (select), 	NOTHING will happen. Because, only a submit button can call servlet.
+
+If we need to get server side output in response to client side event Like (key up, click, focus, blur, change), then we need to use AJAX 
+
+	AJAX			Asynchronous Javascript And XML
+
+WHAT is ajax?
+	calling server side code from javascript or jquery
+
+
+1) i create a servlet that accepts "associateId" as input and prints the "associate" object as output
+
+
+to learn ajax, 
+i will give u simple demo in separate project.
+You can do with me
+
+index.jsp
+MyServlet.java
+
+
+in index.jsp
+	Number 1: <input type=number id=no1 /><br/>
+	Number 2: <input type=number id=no2 /><br/>
+	<select>
+		<option>Choose...</option>
+		<option>Add</option>
+		<option>Subtract</option>
+		<option>Multiply</option>
+		<option>Divide</option>
+	</select>
+	<div id="divResult"></div>
+
+
+create MySerlvet and give url pattern as "ms"
+in myservlet, get the inputs 
+	no1
+	no2
+	
+
+http://localhost:8080/mar-15-ajax-demo/MyServlet?no1=2&no2=3&op=Add
+
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+<script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+<script>
+	$(document).ready(function(){
+		$("#op").change(function(){
+			var no1=$("#no1").val();
+			var no2=$("#no2").val();
+			var op=$(this).val();
+			
+			$.ajax(
+					{
+						url:"ms?no1="+no1+"&no2="+no2+"&op="+op,
+						success:function(result){
+							$("#divResult").html(result);
+						}});
+		});
+	});
+</script>
+</head>
+<body>
+	Number 1: <input type=number id=no1 /><br/>
+	Number 2: <input type=number id=no2 /><br/>
+	<select id="op">
+		<option>Choose...</option>
+		<option>Add</option>
+		<option>Subtract</option>
+		<option>Multiply</option>
+		<option>Divide</option>
+	</select>
+	<div id="divResult"></div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+package controller;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Servlet implementation class MyServlet
+ */
+@WebServlet({ "/MyServlet", "/ms" })
+public class MyServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public MyServlet() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		int no1=Integer.parseInt(request.getParameter("no1"));
+		int no2=Integer.parseInt(request.getParameter("no2"));
+		String op=request.getParameter("op");
+		float result=0;
+		switch(op)
+		{
+		case "Add":
+			result=no1+no2;
+			break;
+		case "Subtract":
+			result=no1-no2;
+			break;
+		case "Multiply":
+			result=no1*no2;
+			break;
+		case "Divide":
+			result=(float)no1/no2;
+			break;
+		}
+		PrintWriter out = response.getWriter();
+		out.print(result);
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doGet(request, response);
+	}
+
+}
+
+
+
+
+an object of associate should be printed by servlet.
+
+that object should be converted into JSON object before printing at servlet
+
+how to convert java object into JSON object?
+	gson is used  to do that?		gson	 means Google json
+
+gson-2.2.2.jar is used for that
+
+
+ 	var year=dt.getYear()+1900;
+  	           	var month="";
+  	           	if((dt.getMonth()+1)<10)
+  	           		month="0"+(dt.getMonth()+1);
+  	           	else
+  	           		month=""+(dt.getMonth()+1);
+				var day=dt.getDay();
+				var dateOfJoining=year+"-"+month+"-"+day;
+				alert(dateOfJoining);
+			
+				$("#dateOfJoining").val(dateOfJoining);  	            
+  	        
+
+
+we should convert the date into yyyy-MM-dd
+
+JSTL	Core
+JSTL	SQL
+
+	jstl sql is a custom tag library that helps us to execute sql queries in JSP page itself.
+	It is not good idea for layered architecture. But for simple queries we can use.
+
+
+Task:
+	create a jsp page that displays a table records using JSTL SQL library
+
+
+
+in JSTL core,
+	"if"	does not have "else" part at all
+
+
+so if we need to have "else",
+	use "choose"
+
+	choose
+		when then
+		when then
+		otherwise
+
+
+
+
+
+====================================
+1) servlet should be created that will find an entity based on primary key
+2) this servlet should print the entity object in out.println()
+3) Before that, the object should be converted into json string
+	use gson for that
+	gson-2.2.2.jar
+
+	GsonBuilder builder = new GsonBuilder();
+	//for converting byte[] into Base64 string,
+		builder.registerTypeAdapter(byte[].class, new JsonSerializer<byte[]>() {
+		    public JsonElement serialize(byte[] src, Type typeOfSrc, JsonSerializationContext context) {
+		        return new JsonPrimitive(Base64.encodeBase64String(src));
+		    }
+		});
+
+	builder.setDateFormat("yyyy-MM-dd");
+
+	Gson gson = builder.create();
+	String json=gson.toJson(associate);
+		
+	out.print(json);
+
+4) in dropdown list, fill the primary key values using for each loop
+
+5) use JQuery to handle the change event of select.
+	call the servlet using AJAX
+	get result as JSON string. CONVERT that string into Object 
+  	          	var associate=$.parseJSON(result);
+
